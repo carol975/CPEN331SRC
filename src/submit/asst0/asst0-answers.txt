@@ -53,9 +53,9 @@ Navigate to printHW, paste the Makefile
          PROG=printhw
          SRCS=printhw.c
          
-Keep the rest the same
+Keep the rest the same. 
+Re configure the os.
 
-Re configure the os
 Q11. The utilities on the host system is not compiled on the os161, and the utilities may use other program
 files that are not included in os161.
 
