@@ -1,0 +1,71 @@
+git log:
+
+commit bd02a330d3260d304c0457908002c3a316752f61
+Author: Carol Fu <fu.carol975@gmail.com>
+Date:   Thu Jan 7 01:30:19 2016 -0500
+
+    First CPEN331 assignment commit
+
+git tag:
+
+asst0-start
+
+Q1.In exception-mips1.S file, at line 137. Where the OS allocate stack space for 37 words to hold the trap frame. 
+When mips_trap is called, the system is transferred to kernel mode. The control is taken-over by the trap-handler from the user. 
+The interrupt is turned off when the system is taken-over by the trap-handler
+
+Q2. In exception-mips1.s, line 69, mips_utlb_handler calls common_exception to enter kernel mode. 
+
+Q3. So the C library can be used both in User Mode and Kernal Mode
+
+Q4. 1. The executable files after user-level programs are compiled 
+    2. and the installed system rooted at PATH. 
+    "1" can be invalidated if user make changes to the user-level programs without compile the changes
+    "2" user compiled the changes but did not install the new system at the root
+
+Q5. If the behaviour of the function changes with the timers and the processors environment (i.e. how processor choose to run 
+which thread or program at what time), then the function is machine dependent. Dividing tasks to multiple functions allows
+some functions run concurrently which increase efficiency. It is also easy to find bugs in the code, if errors 
+can only be found in a particular section of the program. Changes can be made to one section of the code while others remain 
+unchanged allows efficient testing. 
+
+Q6. 37 * 32bits or  37*4byte. For storing all 37 registers
+
+Q7. Whever changes are made to the kernel program files
+
+Q8. If any configuration is changed or any changes are made to kernel program files
+
+Q9. If any changes are made to the kernel program files
+
+Q10.In kern/startup/menu.c add the function printhw
+/*
+ * printhw - prints "Hello World!" to stdout
+ * 
+ */
+ static void printhw (){
+    printf("Hello World!\n");
+    }
+    
+ 
+Copy the Makefile from another command folder. 
+Navigate to printHW, paste the Makefile
+    In Makefile change:
+         PROG=printhw
+         SRCS=printhw.c
+         
+Keep the rest the same
+
+Re configure the os
+Q11. The utilities on the host system is not compiled on the os161, and the utilities may use other program
+files that are not included in os161.
+
+Q12. The value is stored in v0 register. 
+
+Q13. 1. Add a new entry in kern/include/kern/syscall.h
+     2. Add a new case to kern/arch/mips/syscall/syscall.c:syscall() for calling the MI code
+     3. Add the MI code prototype to kern/include/syscall.h
+     4  Write the MI code
+     5. Re configure the system
+     
+
+    
