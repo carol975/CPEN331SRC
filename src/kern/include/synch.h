@@ -76,6 +76,7 @@ struct lock {
         char *lk_name;
         // add what you need here
         // (don't forget to mark things volatile as needed)
+        volatile int held = 0;
 };
 
 struct lock *lock_create(const char *name);
@@ -113,7 +114,7 @@ bool lock_do_i_hold(struct lock *);
 
 struct cv {
         char *cv_name;
-        // add what you need here
+        volatile enqued = 0;
         // (don't forget to mark things volatile as needed)
 };
 
