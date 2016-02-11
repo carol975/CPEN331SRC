@@ -15,3 +15,11 @@ callno is: SYS_open
 Must prevent opening morethan the allowed number of file descriptors, 
 Must returna appropriate error codes.
 kern/arch/mips/syscall add instruction in this file 
+
+error code is in: src/kern/include/kern/errno.h
+syscall no is in: src/kern/include/kern/syscall.h
+
+open(): use the function listed in vnode.c 
+
+all function return 0 if no errors, else return error code
+
