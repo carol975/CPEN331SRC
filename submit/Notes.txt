@@ -19,7 +19,6 @@ kern/arch/mips/syscall add instruction in this file
 error code is in: src/kern/include/kern/errno.h
 syscall no is in: src/kern/include/kern/syscall.h
 
-open(): use the function listed in vnode.c 
-
+open(): use vfs_open in kern/vfs.vfspath.c
 all function return 0 if no errors, else return error code
 
