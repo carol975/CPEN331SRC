@@ -22,3 +22,7 @@ syscall no is in: src/kern/include/kern/syscall.h
 open(): use vfs_open in kern/vfs.vfspath.c
 all function return 0 if no errors, else return error code
 
+
+-write the enter_forked_process(struct trapfram *tf) in syscall.c in src.kern/arch/mips/syscall
+
+
