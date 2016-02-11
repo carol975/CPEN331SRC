@@ -1,0 +1,78 @@
+Assignment 4 - Code Reading exercise
+Author: Debbie and Carol
+Question 1:
+    The ELF magic numbers ELFMAG0 to ELFMAG3 are "0x7f", "E", "L", "F".
+It is found in the file kern/include/elf.h.The magic number identifies the ELF file.
+
+Question 2:
+    UIO_USERSPACE is the user process data, UIO_USERISPCE is the user process code. and it is executable. The UIO_SYSSPACE
+is used when the data transfer process is in the kernel.
+
+Question 3:
+    The struct uio contains a iovec that points to the destination address of where
+we are reading. The uio also has struct addrspace that specifies the user
+address space.
+
+Question 4:
+    The file must be closed because the program is done using the file and keeping
+the file open might cause memory leak. Also, if another process also wants to access 
+the file, the file will not be accessible if it is not previously closed.
+
+Question 5:
+    The funtion mips_usermode() forces processor to switch to the user mode. This 
+function is called by enter_new_process(). This function is machine-dependent because
+it modifies the inerrupt status.
+
+Question 6:
+    copyin and copyout functions are defined in the file kern/vm/copyinout.c. memmove()
+is defined in the file src/common/libc/string/memmove.c. copyin/copyout cannot
+be implemented like memmove because copyin/copyout ensures that the memory block
+that is copy is within a specific length. This prevents that the pointer access
+memory that is not within the limit.
+
+Question 7:
+    userptr_t is a pointer to a one-byte struct. It points to an adress in a 
+specific user space.
+
+Question 8:
+    The numeric value of the exception code for a MIPS system call is 8
+(#define EX_SYS 8 in kern/arch/mips/include/trapframe.h)
+
+Question 9:
+    An instruction in MIPs is 4 bytes because tf_epc is incremented by the value 
+of 4 (tf->tf_epc += 4;).
+
+Question 10:
+    We probably don't want the kernel to panic when the user hits fatel trap and 
+change to some proper handler for this issue.
+
+Question 11:
+
+   Fetching additional arguments from the user-level stack with copyin(), starting address sp+16
+Question 12:
+    SYSCALL macro is the definition of each syscall. It loads the syscall number
+into register v0 and the register kernel expects to find the syscall and jump
+to the shared syscall code.
+
+Question 13:
+    Line 85 in syscalls-mips.S actually triggers a system call. It checks if a3 is zero
+and executes the syscall if true.
+
+Question 14:
+    
+    arg0 in register a0, arg1 in registers a2 and a3, (register a1 is not used).
+    arg3 is stored at user level stack starting at address sp+16. The return value is 
+    store in v0 and v1.
+Question 15:
+    "vfs_open" is used to open the file
+     "VOP_READ" is used to read the file
+     "VOP_WRITE" in vnode.c is used to write data from uio to files at offsets specified
+     vnode is the abstract representation of a open file
+      
+Question 16:
+    VOP_INCREF is to increase the reference count of a file. This is caled
+    everytime vfs_open is called for this particular file 
+    
+    VOP_DECREF is to decrease the reference count of the file. 
+    If the reference count of the file is 0, then the VOP_CLOSE can be called
+    to close the file
