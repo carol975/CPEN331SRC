@@ -1,0 +1,17 @@
+ELF: Executable and Linkable FOrmat is a common standard file form for
+executables, object code, sared libraries, and core dumps
+
+
+syscall(struct trapframe *tf
+sys_reboot:
+
+sys_time:
+]callnumber]
+
+find the error code
+sys_open:
+dispatched from syscall.c
+callno is: SYS_open
+Must prevent opening morethan the allowed number of file descriptors, 
+Must returna appropriate error codes.
+kern/arch/mips/syscall add instruction in this file 
