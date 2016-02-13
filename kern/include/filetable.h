@@ -1,5 +1,5 @@
 #include <synch.h>
-#include <libs.h>
+#include <lib.h>
 #include <current.h>
 #include <vnode.h>
 #include <types.h>
@@ -11,7 +11,7 @@ struct ftEntry{
     int flags;
     int count;
     struct lock *ft_lock;
-}
+};
 
 int ft_init(void);
 

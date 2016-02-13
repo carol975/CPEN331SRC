@@ -11,6 +11,7 @@
 #include <kern/iovec.h>
 #include <filetable.h>
 #include <limits.h>
+#include <file_syscall.h>
 
 
 
@@ -75,7 +76,7 @@ int sys_read(int fd , void *buf, size_t buflen){
     fUIO -> addrspace = NULL; //null for now
     
     
-    
+    return 0;
    
     
     

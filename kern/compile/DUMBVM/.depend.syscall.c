@@ -7,4 +7,9 @@ syscall.o: ../../arch/mips/syscall/syscall.c ../../include/types.h \
  includelinks/machine/spinlock.h ../../include/threadlist.h \
  includelinks/machine/thread.h ../../include/setjmp.h \
  includelinks/kern/machine/setjmp.h ../../include/current.h \
- includelinks/machine/current.h ../../include/syscall.h
+ includelinks/machine/current.h ../../include/syscall.h \
+ ../../include/file_syscall.h ../../include/vfs.h ../../include/vnode.h \
+ ../../include/copyinout.h ../../include/kern/limits.h \
+ ../../include/proc.h ../../include/limits.h ../../include/uio.h \
+ ../../include/kern/iovec.h ../../include/filetable.h \
+ ../../include/synch.h
