@@ -1,4 +1,5 @@
 
+
 #include <vfs.h>
 #include <vnode.h>
 #include <copyinout.h>
@@ -87,3 +88,6 @@ int sys_read(int fd , void *buf, size_t buflen){
     
 
 
+=======
+abc
+>>>>>>> 340addb3eb7c289c76ef8122b83a5814cc47803e
