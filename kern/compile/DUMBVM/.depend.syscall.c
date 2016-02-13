@@ -10,6 +10,5 @@ syscall.o: ../../arch/mips/syscall/syscall.c ../../include/types.h \
  includelinks/machine/current.h ../../include/syscall.h \
  ../../include/file_syscall.h ../../include/vfs.h ../../include/vnode.h \
  ../../include/copyinout.h ../../include/kern/limits.h \
- ../../include/proc.h ../../include/limits.h ../../include/uio.h \
- ../../include/kern/iovec.h ../../include/filetable.h \
- ../../include/synch.h
+ ../../include/proc.h ../../include/limits.h ../../include/filetable.h \
+ ../../include/synch.h ../../include/uio.h ../../include/kern/iovec.h
