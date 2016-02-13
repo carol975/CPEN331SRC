@@ -35,6 +35,7 @@
 #include <thread.h>
 #include <current.h>
 #include <syscall.h>
+#include <file_syscall.h>
 
 
 /*
@@ -119,9 +120,9 @@ syscall(struct trapframe *tf)
         err = sys_read(tf->tf_a0, (char *)tf->tf_a1, (size_t)tf->tf_a2);
         break;
         
-        case SYS_write:
-        err = sys_write(tf->tf_a0, (void *)tf->tf_a1, (size_t)tf->tf_a2);
-        break;
+/*      case SYS_write:
+ //       err = sys_write(tf->tf_a0, (void *)tf->tf_a1, (size_t)tf->tf_a2);
+  //      break;
         
         case SYS_lseek:
         //TODO: implement later

@@ -14,6 +14,8 @@
 #include <filetable.h>
 #include <limits.h>
 #include <kern/fcntl.h>
+#include <file_syscall.h>
+
 
 
 
@@ -77,6 +79,9 @@ int sys_read(int fd , void *buf, size_t buflen){
     fUIO -> uio_segflg = UIO_USRSPACE;
     fUIO -> uio_rw = UIO_READ;
     fUIO -> addrspace = NULL; //null for now
+    
+    
+    return 0;
 
 }   
     
