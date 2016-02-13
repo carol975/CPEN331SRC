@@ -44,6 +44,7 @@
 #include <vfs.h>
 #include <syscall.h>
 #include <test.h>
+#include <filetable.h>
 
 /*
  * Load program "progname" and start running it in usermode.
@@ -101,7 +102,8 @@ runprogram(char *progname)
 	enter_new_process(0 /*argc*/, NULL /*userspace addr of argv*/,
 			  NULL /*userspace addr of environment*/,
 			  stackptr, entrypoint);
-
+    
+    ft_init();
 	/* enter_new_process does not return. */
 	panic("enter_new_process returned\n");
 	return EINVAL;

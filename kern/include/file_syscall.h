@@ -15,7 +15,8 @@
 
 int sys_open(const char *filename, int flags, mode_t mode);
 
-int sys_read(int fd, void *buf, size_t buflen);
+int sys_read(int fd, char *buf, size_t buflen);
 
+int sys_write(int fd, char *buf, size_t buflen);
 
 #endif

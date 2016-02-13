@@ -52,37 +52,82 @@ int sys_open(const char *filename, int flags, mode_t mode){
     
 }
 
+
+int sys_write(int fd, char *buf, size_t buflen){
+    
+    struct iovec *fIOV = (struct iovec*)kmalloc(sizeof(struct iovec));
+    struct uio *fUIO = (struct uio*)kmalloc(sizeof(struct uio));
+    int result;
+    //struct ftEntry file = curproc->filetable[fd];
+    
+    //TODO: aquire lock?
+    
+    //bad file number
+    if((fd < 0) || (curproc->filetable[fd]) || (fd > FDS_MAX)) {
+        //TODO: release lock?
+        return EBADF;
+    }
+    
+    fIOV->iov_ubase = (userptr_t)buf;    
+    fIOV->iov_len = buflen;
+    fUIO->uio_iov = fIOV;
+    fUIO->uio_iovcnt = 1;
+    fUIO->uio_offset = curproc->filetable[fd]->offset;
+    fUIO->uio_resid = buflen;
+    fUIO->uio_segflg = UIO_USERSPACE;
+    fUIO->uio_rw = UIO_WRITE;
+    fUIO->uio_space = curproc->p_addrspace;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+    
+    result = VOP_WRITE(curproc->filetable[fd]->ft_vnode, fUIO);
+    if(result){
+        //TODO: release lock?
+        return result;
+    }
+    
+    curproc->filetable[fd]->offset = fUIO->uio_offset;
+    
+    
+    return result;
+    
+}
+
 /*
-//fd: file descriptor
-int sys_read(int fd , void *buf, size_t buflen){
+int sys_read(int fd , char *buf, size_t buflen){
  
-    if( fd< 0 || fd >= FDS_MAX || filetable[fd] == NULL){
+    struct iovec *fIOV = (struct iovec*)kmalloc(sizeof(struct iovec));
+    struct uio *fUIO = (struct uio*)kmalloc(sizeof(struct uio));
+    int result;
+    //struct ftEntry file = filetable[fd];
+    
+    if( fd< 0 || fd >= FDS_MAX || curproc->filetable[fd] == NULL){
         return EBADF; //return bad file number
     }
-    struct ftEntry file = filetable[fd];
-    lock_acquire(file-> ft_lock);
-    if(file -> mode = O_WRONLY){
-   
-      lock_release(file->ft_lock);
+    
+    lock_acquire(curproc->filetable[fd]-> ft_lock);
+    if((curproc->filetable[fd]->mode) == O_WRONLY){
+      lock_release(curproc->filetable[fd]->ft_lock);
+      return EBADF;
     }
-    struct iovec *fIOV =(struct iovect*) kmalloc(sizeof(struct iovec));
-    
-    fIOV ->iov_ubase = (userptr_t)buf;    
-    fIOV ->iov_len = buflen;
-    
-    struct uio *fUIO = (struct uio*)kmalloc(sizeof(struct uio));
-    
-    fUIO -> uio_iov = &fIOV;
-    fUIO -> uio_iovcnt = 1;
-    fUIO -> uio_offset = file -> offset;
-    fUIO -> uio_resid = buflen;
-    fUIO -> uio_segflg = UIO_USRSPACE;
-    fUIO -> uio_rw = UIO_READ;
-    fUIO -> addrspace = NULL; //null for now
     
     
-    return 0;
+    fIOV->iov_ubase = (userptr_t)buf;    
+    fIOV->iov_len = buflen;
+    fUIO->uio_iov = fIOV;
+    fUIO->uio_iovcnt = 1;
+    fUIO->uio_offset = curproc->filetable[fd]->offset;
+    fUIO->uio_resid = buflen;
+    fUIO->uio_segflg = UIO_USERSPACE;
+    fUIO->uio_rw = UIO_READ;
+    fUIO->uio_space = curproc->p_addrspace; 
+    
+    result = VOP_READ(curproc->filetable[fd]->ft_vnode, fUIO);
+    if(result){
+        lock_release(curproc->filetable[fd]->ft_lock);
+        return result;
+    }
+    
+    lock_release(curproc->filetable[fd]->ft_lock);
+    return result;
 
 }   
-    
- */   
+*/
