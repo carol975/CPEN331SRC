@@ -105,5 +105,6 @@
 /* Max number of iovec structures at once for readv/writev/preadv/pwritev */
 #define __IOV_MAX       1024
 
-
+/* Max number of the file table entires */
+#define __FDS_MAX       50
 #endif /* _KERN_LIMITS_H_ */

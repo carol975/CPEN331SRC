@@ -30,6 +30,7 @@
 #ifndef _PROC_H_
 #define _PROC_H_
 
+#define MAXFDS 50
 /*
  * Definition of a process.
  *
@@ -38,6 +39,7 @@
 
 #include <spinlock.h>
 #include <thread.h> /* required for struct threadarray */
+#include <limits.h>  /* for FDS_MAX */
 
 struct addrspace;
 struct vnode;
@@ -57,6 +59,7 @@ struct proc {
 	struct vnode *p_cwd;		/* current working directory */
 
 	/* add more material here as needed */
+	struct ftEntry *filetable[FDS_MAX];
 };
 
 /* This is the process structure for the kernel and for kernel-only threads. */
