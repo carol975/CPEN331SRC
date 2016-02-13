@@ -39,6 +39,7 @@
 
 
 #include <cdefs.h>
+#include <types.h>
 
 /*
  * Assert macros.

@@ -1,8 +1,12 @@
+#include <filetable.h>
+#include <types.h>
 #include <lib.h>
 #include <kern/errno.h>
 #include <vfs.h>
 #include <vnode.h>
 #include <current.h>
+#include <proc.h>
+#include <kern/fcntl.h>
 
 /*
  * filetable[0]: standard input (stdin)
@@ -32,7 +36,7 @@ int ft_init(void){
     curproc->filetable[0]->mode = 0;
     curproc->filetable[0]->flags = O_RDWR;
     curproc->filetable[0]->count = 1;
-    curprov->filetable[0]->ft_lock = lock_create(in);
+    curproc->filetable[0]->ft_lock = lock_create(in);
     
     
     //stdard output
@@ -46,7 +50,7 @@ int ft_init(void){
     curproc->filetable[1]->mode = 0;
     curproc->filetable[1]->flags = O_RDWR;
     curproc->filetable[1]->count = 1;
-    curprov->filetable[1]->ft_lock = lock_create(out);
+    curproc->filetable[1]->ft_lock = lock_create(out);
     
     
     //stardard error
@@ -60,7 +64,7 @@ int ft_init(void){
     curproc->filetable[2]->mode = 0;
     curproc->filetable[2]->flags = O_RDWR;
     curproc->filetable[2]->count = 1;
-    curprov->filetable[2]->ft_lock = lock_create(err);
+    curproc->filetable[2]->ft_lock = lock_create(err);
     
     return 0;
 }
@@ -83,11 +87,10 @@ int ft_add(char* filename, int flags, mode_t mode){
     }
     
     
-    int result = vfs_open(filename, flags, mode, &vn);
+    result = vfs_open(filename, flags, mode, &vn);
     if(result){
         kfree(filename);
         kfree(curproc->filetable[index]);
-        curproc->filetable = NULL;
         //TODO: release lock?
         return result;
     }

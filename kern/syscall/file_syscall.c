@@ -1,7 +1,9 @@
 
 
 #include <vfs.h>
+#include <types.h>
 #include <vnode.h>
+#include <kern/errno.h>
 #include <copyinout.h>
 #include <syscall.h>
 #include <kern/limits.h>
@@ -11,18 +13,19 @@
 #include <kern/iovec.h>
 #include <filetable.h>
 #include <limits.h>
+#include <kern/fcntl.h>
 
 
 
 int sys_open(const char *filename, int flags, mode_t mode){
-    if(flag != O_RDONLY && flag != O_WRONLY && flag != O_RDWR){
+    if(flags != O_RDONLY && flags != O_WRONLY && flags != O_RDWR){
         return EINVAL; // Invalid argument flags can only be one of the three 
     }
     
     char *fbuff;
     int result;
     
-    if(fbuff = (char *)kmalloc(__PATH_MAX))== NULL){
+    if((fbuff = (char *)kmalloc(__PATH_MAX))== NULL){
         return ENOMEM;
     }
     
@@ -39,14 +42,15 @@ int sys_open(const char *filename, int flags, mode_t mode){
     result = ft_add(fbuff,flags,mode);
     
     //if ft_add returns 1 (false)
-    if(result = -1){
-        kfree(kbuff);
+    if(result == -1){
+        kfree(fbuff);
         return result;
     } 
     return result; //returns the file descriptor
     
 }
 
+/*
 //fd: file descriptor
 int sys_read(int fd , void *buf, size_t buflen){
  
@@ -73,24 +77,7 @@ int sys_read(int fd , void *buf, size_t buflen){
     fUIO -> uio_segflg = UIO_USRSPACE;
     fUIO -> uio_rw = UIO_READ;
     fUIO -> addrspace = NULL; //null for now
-    
-    
-    
-   
-    
-    
-    
-  
+
 }   
     
-    
-    
-    
-    
-    
-    
-
-
-=======
-abc
->>>>>>> 340addb3eb7c289c76ef8122b83a5814cc47803e
+ */   

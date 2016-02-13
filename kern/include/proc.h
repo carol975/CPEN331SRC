@@ -37,9 +37,12 @@
  * Note: curproc is defined by <current.h>.
  */
 
+#include <types.h>
 #include <spinlock.h>
 #include <thread.h> /* required for struct threadarray */
 #include <limits.h>  /* for FDS_MAX */
+#include <filetable.h>
+
 
 struct addrspace;
 struct vnode;
