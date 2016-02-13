@@ -5,9 +5,12 @@
 #include <copyinout.h>
 #include <syscall.h>
 #include <kern/limits.h>
+#include <current.h>
 #include <proc.h>
 #include <uio.h>
 #include <kern/iovec.h>
+#include <filetable.h>
+#include <limits.h>
 
 
 
@@ -33,7 +36,7 @@ int sys_open(const char *filename, int flags, mode_t mode){
     }
     
     //ft_add return file descriptor (int);
-    result = ft_add (fbuff,flags,mode);
+    result = ft_add(fbuff,flags,mode);
     
     //if ft_add returns 1 (false)
     if(result = -1){
