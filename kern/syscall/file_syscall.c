@@ -5,6 +5,9 @@
 #include <syscall.h>
 #include <kern/limits.h>
 #include <proc.h>
+#include <uio.h>
+#include <kern/iovec.h>
+
 
 
 int sys_open(const char *filename, int flags, mode_t mode){
@@ -12,7 +15,6 @@ int sys_open(const char *filename, int flags, mode_t mode){
         return EINVAL; // Invalid argument flags can only be one of the three 
     }
     
-    struct vnode *v;
     char *fbuff;
     int result;
     
@@ -28,32 +30,54 @@ int sys_open(const char *filename, int flags, mode_t mode){
         kfree(fbuff);
         return result;
     }
-    //TODO:Add fbuff to file table
     
-    result = vfs_open (fbuff, flags, mode, &v);
+    //ft_add return file descriptor (int);
+    result = ft_add (fbuff,flags,mode);
     
-    //if vfs_open returns 1 (false)
-    if(result){
+    //if ft_add returns 1 (false)
+    if(result = -1){
         kfree(kbuff);
-        
-        //TODO: free the the pointer of the opened file in filetable
-        
         return result;
-    }
-    
-    //TODO: Set all fields of for this file in filetable
-    
-    return 0;
+    } 
+    return result; //returns the file descriptor
     
 }
 
 //fd: file descriptor
 int sys_read(int fd , void *buf, size_t buflen){
  
-    if( fd < 0 || fd >= FDS_MAX || fd_table[fd] == NULL){
+    if( fd< 0 || fd >= FDS_MAX || filetable[fd] == NULL){
         return EBADF; //return bad file number
     }
+    struct ftEntry file = filetable[fd];
+    lock_acquire(file-> ft_lock);
+    if(file -> mode = O_WRONLY){
+   
+      lock_release(file->ft_lock);
+    }
+    struct iovec *fIOV =(struct iovect*) kmalloc(sizeof(struct iovec));
     
+    fIOV ->iov_ubase = (userptr_t)buf;    
+    fIOV ->iov_len = buflen;
+    
+    struct uio *fUIO = (struct uio*)kmalloc(sizeof(struct uio));
+    
+    fUIO -> uio_iov = &fIOV;
+    fUIO -> uio_iovcnt = 1;
+    fUIO -> uio_offset = file -> offset;
+    fUIO -> uio_resid = buflen;
+    fUIO -> uio_segflg = UIO_USRSPACE;
+    fUIO -> uio_rw = UIO_READ;
+    fUIO -> addrspace = NULL; //null for now
+    
+    
+    
+   
+    
+    
+    
+  
+}   
     
     
     
