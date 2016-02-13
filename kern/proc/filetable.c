@@ -29,7 +29,7 @@ int ft_init(void){
     curproc->filetable[0] = (struct ftEntry* )kmalloc(sizeof(struct ftEntry));
     result = vfs_open(in, O_RDWR, 0, &vn); 
     if(result){
-        //TODO: error checking
+        return result;
     }
     curproc->filetable[0]->ft_vnode = vn;
     curproc->filetable[0]->offset = 0;
@@ -43,7 +43,7 @@ int ft_init(void){
     curproc->filetable[1] = (struct ftEntry* )kmalloc(sizeof(struct ftEntry));
     result = vfs_open(out, O_RDWR, 0, &vn); 
     if(result){
-        //TODO: error checking
+        return result;
     }
     curproc->filetable[1]->ft_vnode = vn;
     curproc->filetable[1]->offset = 0;
@@ -57,7 +57,7 @@ int ft_init(void){
     curproc->filetable[2] = (struct ftEntry* )kmalloc(sizeof(struct ftEntry));
     result = vfs_open(err, O_RDWR, 0, &vn); 
     if(result){
-        //TODO: error checking
+        return result;
     }
     curproc->filetable[2]->ft_vnode = vn;
     curproc->filetable[2]->offset = 0;
@@ -65,6 +65,11 @@ int ft_init(void){
     curproc->filetable[2]->flags = O_RDWR;
     curproc->filetable[2]->count = 1;
     curproc->filetable[2]->ft_lock = lock_create(err);
+    
+    int i;
+    for(i = 3; i < FDS_MAX; i++){
+        curproc->filetable[i] = NULL;
+    }
     
     return 0;
 }
@@ -75,13 +80,11 @@ int ft_add(char* filename, int flags, mode_t mode){
     int index = 3;
     int result;
     
-    //TODO:aquire lock?
     
     //check for empty space
     while(curproc->filetable[index] != NULL){
         index++;
         if(index == FDS_MAX){
-            //TODO: release lock?
             return ENFILE;
         }
     }
@@ -91,7 +94,6 @@ int ft_add(char* filename, int flags, mode_t mode){
     if(result){
         kfree(filename);
         kfree(curproc->filetable[index]);
-        //TODO: release lock?
         return result;
     }
     
@@ -102,7 +104,6 @@ int ft_add(char* filename, int flags, mode_t mode){
     curproc->filetable[index]->flags = flags;
     curproc->filetable[index]->count = 1;
     curproc->filetable[index]->ft_lock = lock_create(filename);
-    
-    //TODO: release lock?
+
     return index;
 }

@@ -13,10 +13,11 @@
 #include <filetable.h>
 #include <limits.h>
 
-int sys_open(const char *filename, int flags, mode_t mode);
+int sys_open(const char *filename, int flags, mode_t mode, int *retval);
 
 int sys_read(int fd, char *buf, size_t buflen);
 
-int sys_write(int fd, char *buf, size_t buflen);
+int sys_write(int fd, char *buf, size_t buflen, int *retval);
 
+int sys_close(int fd);
 #endif

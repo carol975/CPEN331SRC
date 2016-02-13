@@ -19,7 +19,7 @@
 
 
 
-int sys_open(const char *filename, int flags, mode_t mode){
+int sys_open(const char *filename, int flags, mode_t mode, int *retval){
     if(flags != O_RDONLY && flags != O_WRONLY && flags != O_RDWR){
         return EINVAL; // Invalid argument flags can only be one of the three 
     }
@@ -48,27 +48,49 @@ int sys_open(const char *filename, int flags, mode_t mode){
         kfree(fbuff);
         return result;
     } 
-    return result; //returns the file descriptor
+    
+    *retval = result;
+    return 0; //returns the file descriptor
     
 }
 
 
-int sys_write(int fd, char *buf, size_t buflen){
+int sys_write(int fd, char *buf, size_t buflen, int *retval){
     
     struct iovec *fIOV = (struct iovec*)kmalloc(sizeof(struct iovec));
     struct uio *fUIO = (struct uio*)kmalloc(sizeof(struct uio));
     int result;
-    //struct ftEntry file = curproc->filetable[fd];
+    char *fbuf;
     
-    //TODO: aquire lock?
+    
+    lock_acquire(curproc->filetable[fd]->ft_lock);
     
     //bad file number
     if((fd < 0) || (curproc->filetable[fd]) || (fd > FDS_MAX)) {
-        //TODO: release lock?
+        lock_release(curproc->filetable[fd]->ft_lock);
         return EBADF;
     }
     
-    fIOV->iov_ubase = (userptr_t)buf;    
+    if((curproc->filetable[fd]->mode) == O_WRONLY){
+      lock_release(curproc->filetable[fd]->ft_lock);
+      return EBADF; //bad file number
+    }
+    
+    
+    fbuf = kmalloc(sizeof(*buf)*buflen);
+    if(fbuf == NULL){
+        return EINVAL;
+    }
+    
+    lock_acquire(curproc->filetable[fd]->ft_lock);
+    result = copyinstr((userptr_t)buf, fbuf, buflen, NULL);
+    if(result){
+        kfree(fbuf);
+        lock_release(curproc->filetable[fd]->ft_lock);
+        return result;
+    }
+    
+    fIOV->iov_ubase = (userptr_t)fbuf;    
     fIOV->iov_len = buflen;
     fUIO->uio_iov = fIOV;
     fUIO->uio_iovcnt = 1;
@@ -80,18 +102,22 @@ int sys_write(int fd, char *buf, size_t buflen){
     
     result = VOP_WRITE(curproc->filetable[fd]->ft_vnode, fUIO);
     if(result){
-        //TODO: release lock?
+        kfree(fbuf);
+        lock_release(curproc->filetable[fd]->ft_lock);
         return result;
     }
     
     curproc->filetable[fd]->offset = fUIO->uio_offset;
+    *retval = buflen - fUIO->uio_resid;
+    curproc->filetable[fd]->offset += *retval;
     
+    lock_release(curproc->filetable[fd]->ft_lock);
     
-    return result;
+    return 0;
     
 }
 
-/*
+
 int sys_read(int fd , char *buf, size_t buflen){
  
     struct iovec *fIOV = (struct iovec*)kmalloc(sizeof(struct iovec));
@@ -130,4 +156,27 @@ int sys_read(int fd , char *buf, size_t buflen){
     return result;
 
 }   
-*/
+
+int sys_close(int fd){
+    
+    if(curproc->filetable[fd] == NULL){
+        return EBADF;   
+     }
+     lock_acquire(curproc->filetable[fd]->ft_lock);
+     
+     curproc->filetable[fd]-> count--;
+     VOP_DECREF(curproc->filetable[fd]->ft_vnode);
+     if(curproc->filetable[fd]->count == 0){
+        vfs_close(curproc->filetable[fd]->ft_vnode);
+         
+        lock_release(curproc->filetable[fd]->ft_lock);
+        kfree(curproc->filetable[fd]);
+        curproc->filetable[fd] = NULL;
+        return 0;
+       
+     }
+     
+      lock_release(curproc->filetable[fd]->ft_lock);
+      return 0;
+}
+
