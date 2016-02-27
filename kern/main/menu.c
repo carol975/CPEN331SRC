@@ -492,8 +492,6 @@ cmd_testmenu(int n, char **a)
 	(void)a;
 
 	showmenu("OS/161 tests menu", testmenu);
-	kprintf("    (1) These tests will fail until you finish the "
-		"synch assignment.\n");
 	kprintf("\n");
 
 	return 0;
