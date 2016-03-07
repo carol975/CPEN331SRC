@@ -22,7 +22,7 @@
 
 /* copy the current process */
 pid_t 
-sys_fork(int *retval){
+sys_fork(struct trapframe *parent_tf, int *retval){
 
  int err = 0;
 	 
@@ -63,7 +63,7 @@ sys_fork(int *retval){
 	//
 	
 	 return 0;
->>>>>>> f77ea7511a3c8750d8f2347f465fbca512476c38
+
 
 }
 
