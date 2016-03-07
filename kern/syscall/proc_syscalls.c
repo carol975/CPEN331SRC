@@ -23,7 +23,8 @@
 /* copy the current process */
 pid_t 
 sys_fork(int *retval){
-
+    
+    struct trapframe *child_tf;
 
 }
 
