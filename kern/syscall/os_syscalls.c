@@ -31,9 +31,13 @@ int sys_fork(trapframe *parent_tf){
 	 /*Create the child process*/
 	 struct proc *child_proc = (proc *)kmalloc(sizeof(proc));
 	 err = proc_fork(&child_proc);  //the file handle is copied automatically
+	 if(child_proc == NULL){
+		 return err;
+	 }
 	 
 	 /*Copy the parent addresspace to child addresspace	 */
 	 //NOTE: consider child_as = parent_as_tf+4
+	 //proc_setas() in as_copy?
 	as_copy(curproc->p_addrspace, child_proc->p_addrspace);
 	 if(as == ENOMEM){
 		 return ENOMEM;
@@ -41,8 +45,7 @@ int sys_fork(trapframe *parent_tf){
 	 
 	 /*Modify child_addr */
 
-	 //TODO
-	 
+	 //TODO copy file table to an array  with array_create()
 	 
 	 /*Save a copy of the parent addresspace*/
 	struct addrspace * parent_addrspace = (addrspace*)kmalloc(sizeof(addrspace));
@@ -56,7 +59,7 @@ int sys_fork(trapframe *parent_tf){
 	child_tf = parent_tf;
 	
 	//Should child_proc be replaced with NULL? since the process is switched
-	err = thread_fork("Child Thread", child_proc,child_fork_entry,NULL,0);
+	err = thread_fork("Child Thread", child_proc,&child_fork_entry,NULL,0);
 	if(err){
 		kprintf("child thread_fork failed: %s\n",strerror(err));
 		proc_destroy(child_proc);
