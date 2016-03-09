@@ -68,8 +68,8 @@ sys_fork(struct trapframe *parent_tf, int *retval){
 		proc_destroy(child_proc);
 		return err;
 	}
-	//
 	
+	//random retval.......for now.....
 	*retval = 0;
 	 return err;
 
