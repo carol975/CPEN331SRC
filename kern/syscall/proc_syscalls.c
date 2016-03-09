@@ -27,20 +27,24 @@ sys_fork(struct trapframe *parent_tf, int *retval){
  int err = 0;
 	 
 	 /*Create the child process*/
-	 struct proc *child_proc = (proc *)kmalloc(sizeof(proc));
+	 struct proc *child_proc = (proc *)kmalloc(sizeof(struct proc));
 	 err = proc_fork(&child_proc);  //the file handle is copied automatically
 	 
 	 /*Copy the parent addresspace to child addresspace	 */
 	 //NOTE: consider child_as = parent_as_tf+4
-	as_copy(curproc->p_addrspace, child_proc->p_addrspace);
+	as_copy(proc_getas(), child_proc->p_addrspace);
 	 if(as == ENOMEM){
 		 return ENOMEM;
 	 }
 	 
-	 /*Modify child_addr */
-
-	 //TODO
-	 
+	 /*Copy parent file table to child*/
+    int i = 0;
+	while(*(curproc->p_filetable + i) != NULL){
+		struct filetable* child_p_filetable =(filetable *) kmalloc(sizeof(struct filetable));
+		*child_p_filetable = *(curproc->p_filetable + i);
+		child_proc -> p_filetable + i = child_p_filetable; 
+		++i;
+	}
 	 
 	 /*Save a copy of the parent addresspace*/
 	struct addrspace * parent_addrspace = (addrspace*)kmalloc(sizeof(addrspace));
@@ -49,12 +53,14 @@ sys_fork(struct trapframe *parent_tf, int *retval){
 	parent_addrspace = proc_setas(child_proc->addrspace);
 	as_activate();
 	
-	/* Create the child thread and attach to child_proc*/
+
+	/* Child trapframe is a copy of the parent trapframe */
 	struct trapframe *child_tf = (trapframe *)kmalloc(sizeof(trapframe));
-	child_tf = parent_tf;
-	
+	*child_tf = *parent_tf;
+
+	/* Create the child thread and attach to child_proc*/
 	//Should child_proc be replaced with NULL? since the process is switched
-	err = thread_fork("Child Thread", child_proc,child_fork_entry,NULL,0);
+	err = thread_fork("Child Thread", child_proc, &enter_forked_process,NULL,0);
 	if(err){
 		kprintf("child thread_fork failed: %s\n",strerror(err));
 		proc_destroy(child_proc);
@@ -62,7 +68,8 @@ sys_fork(struct trapframe *parent_tf, int *retval){
 	}
 	//
 	
-	 return 0;
+	*retval = 0;
+	 return err;
 
 
 }
