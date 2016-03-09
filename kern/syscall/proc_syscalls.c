@@ -57,10 +57,12 @@ sys_fork(struct trapframe *parent_tf, int *retval){
 	/* Child trapframe is a copy of the parent trapframe */
 	struct trapframe *child_tf = (trapframe *)kmalloc(sizeof(trapframe));
 	*child_tf = *parent_tf;
-
+	//increment child epc  by 4 so it does not execute the fork call
+	*child_tf->tf_epc += 4;
+	
 	/* Create the child thread and attach to child_proc*/
 	//Should child_proc be replaced with NULL? since the process is switched
-	err = thread_fork("Child Thread", child_proc, &enter_forked_process,NULL,0);
+	err = thread_fork("Child Thread", child_proc, &enter_forked_process,child_tf,0);
 	if(err){
 		kprintf("child thread_fork failed: %s\n",strerror(err));
 		proc_destroy(child_proc);
