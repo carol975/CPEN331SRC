@@ -59,14 +59,21 @@ pid_t sys_fork(struct trapframe *parent_tf, int *retval){
 
 }
 
+
+pid_t sys_getpid(int *retval){
+		*retval = curproc->pid;
+		return 0;
+}
+
 int sys_execv(const char* program, char** args, int *retval){
-	//MORE STUFF BEFORE
 	
-	/* open the executable, create a new address space and load the elf into it */
 	struct addrspace *as;
 	struct vnode *v;
-	vaddr_t entrypoint, stackptrl
+	vaddr_t entrypoint, stackptr;
 	int err;
+	
+	/* open the executable, create a new address space and load the elf into it */
+	
 	/*Open the file */
 	err = vfs_open(program, O_RDONLY,0,&v);
 	if(err){
@@ -82,8 +89,7 @@ int sys_execv(const char* program, char** args, int *retval){
 		return ENOMEM;
 	}
 	
-	// Switch to the newly created addresspace, that is, to completely abandon the addrspce
-	//it inherited from its parent
+	// Switch to the newly created addresspace, that is, to completely abandon the addrspce it inherited from its parent
 	
 	proc_setas(as);
 	as_activate();
@@ -103,8 +109,4 @@ int sys_execv(const char* program, char** args, int *retval){
 	panic("enter_new_process returned\n");
 	return EINVAL;
 	
-}
-pid_t sys_getpid(int *retval){
-		*retval = curproc->pid;
-		return 0;
 }

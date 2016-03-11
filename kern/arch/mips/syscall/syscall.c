@@ -278,8 +278,7 @@ void
 enter_forked_process(void * tf,unsigned long data2)
 {
 	(void) data2;	
-	struct trapframe child_tf;
-	child_tf = *(struct trapframe*)tf;
+	struct trapframe child_tf = *(struct trapframe*)tf;
 	
 	//modify parent trapframe to make child's fork looks success and return 0
 	child_tf.tf_v0 = 0; //child return 0 for fork

@@ -162,3 +162,50 @@ void
 sys__exit(int exitcode){
 
 }
+
+
+
+int sys_execv(const char* program, char** args, int *retval){
+	//MORE STUFF BEFORE
+	
+	/* open the executable, create a new address space and load the elf into it */
+	struct addrspace *as;
+	struct vnode *v;
+	vaddr_t entrypoint, stackptrl
+	int err;
+	/*Open the file */
+	err = vfs_open(program, O_RDONLY,0,&v);
+	if(err){= 
+		return err;
+	}
+	
+	/* since execv is called after fork, we should be in the new process */
+	// since file table for child is already copied over from the parent, no need to
+	// create a new 
+	as = as_create();
+	if(as == NULL){
+		vfs_clos(v);
+		return ENOMEM;
+	}
+	
+	// Switch to the newly created addresspace, that is, to completely abandon the addrspce it inherited from its parent
+	
+	proc_setas(as);
+	as_activate();
+	
+	/* Load thee executable. */
+	err = load_elf(v, &entrypoint);
+	if(err){
+		/* p_addrspace will be destroyed when curproc is destroyed */
+		vfs_close(v);
+		return err; 
+	}
+	
+	/* Go back to user mode */
+	enter_new_process(0/*argc*/,NULL/*userspace addr of argv*/, NULL ./*userspace addr of environment */, stackptr, entrypoint);
+	
+	/*enter_new_process should not return */
+	panic("enter_new_process returned\n");
+	return EINVAL;
+	
+}
