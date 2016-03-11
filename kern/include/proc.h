@@ -38,9 +38,12 @@
 
 #include <spinlock.h>
 #include <thread.h> /* required for struct threadarray */
+#include <limits.h>
 
 struct addrspace;
 struct vnode;
+
+
 
 /*
  * Process structure.
@@ -60,6 +63,19 @@ struct proc {
 	/* add more material here as needed */
 	pid_t pid;
 };
+
+/*
+ * structure for process ID info
+ */
+struct processID {
+   pid_t pid;          //process id for current process
+   pid_t ppid;         //process id for parent process
+   bool exited;        //determine if process exited or not
+   int exitCode;       //exit code of process
+   //struct thread *p_thread;  //thread of current process
+   //struct cv *p_cv;    //lock for current process 
+};
+
 
 /* This is the process structure for the kernel and for kernel-only threads. */
 extern struct proc *kproc;
@@ -87,6 +103,22 @@ struct addrspace *proc_getas(void);
 
 /* Change the address space of the current process, and return the old one. */
 struct addrspace *proc_setas(struct addrspace *);
+
+/* Initialize process table */
+void pid_init(void);
+
+/*
+ * Set an entry in the pidTable
+ */
+struct processID * pid_set(pid_t pid, pid_t ppid);
+
+pid_t pid_alloc(void);
+
+/* Destroys a process ID entry  */
+void pid_destroy(struct processID* pid);
+
+/* Find empty entry in process table */
+pid_t pid_find_entry(void);
 
 
 #endif /* _PROC_H_ */

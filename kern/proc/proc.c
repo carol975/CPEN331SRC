@@ -50,12 +50,16 @@
 #include <addrspace.h>
 #include <vnode.h>
 #include <filetable.h>
+#include <synch.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
  */
 struct proc *kproc;
 
+struct processID *pidTable[PID_MAX];  //global process table
+bool init = 0;     //detemine if this is the first time initializing table
+struct lock *pidTable_lk;
 /*
  * Create a proc structure.
  */
@@ -84,7 +88,18 @@ proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 	proc->p_filetable = NULL;
-
+	
+	//if pid table is not initialized yet, initialize it
+	/*
+	if(init == 0){
+	    pid_init();
+	    init = 1;
+	}
+	*/
+	//pid_t id = pid_alloc();
+	
+	
+    
 	return proc;
 }
 
@@ -387,4 +402,118 @@ proc_setas(struct addrspace *newas)
 	proc->p_addrspace = newas;
 	spinlock_release(&proc->p_lock);
 	return oldas;
+}
+
+/*
+ * Initialize all entries in the pid table to be NULL
+ */
+void
+pid_init(){ 
+   
+   
+   int i;
+   
+   //initialize all entries to NULL
+   for(i = 0; i < PID_MAX; i++){
+       pidTable[i] = NULL;
+   }
+   
+   pidTable_lk = lock_create("pidTable_lk");
+   if(pidTable_lk == NULL){
+        //TODO: Unsuccessful creation of lock
+   }
+   
+   /*
+    * No process can use pid = 0, so we initialize pid = 1 with
+    * pid = 1, ppid = 0
+    */
+   pidTable[1] = pid_set(1, 0);
+   
+
+}
+
+/*
+ * Set an entry in the pidTable
+ */
+struct processID *
+pid_set(pid_t pid, pid_t ppid){
+    struct processID *temp;
+    
+    KASSERT(pid != 0);
+    
+    temp = kmalloc(sizeof(struct processID));
+    if(temp == NULL){
+        return NULL;
+    }
+    
+    temp->pid = pid;
+    temp->ppid = ppid;
+    temp->exited = 0;
+    temp->exitCode = 0;
+    
+    return temp;
+    
+}
+
+pid_t
+pid_alloc(void) {
+
+    lock_acquire(pidTable_lk);
+    
+    //TODO: check if # of process is maxed out?
+    
+    int pid = 1;
+    while(pidTable[pid] != NULL) {
+    
+        //no more space for new process
+        if(pid > PID_MAX){
+            lock_release(pidTable_lk);
+            //return ENPROC;
+            return 0;
+        }
+        pid++;
+    }
+    
+    struct processID *temp;
+    temp = pid_set(pid, curproc->pid);
+    
+    //not enough memory to set up entry (kmalloc unsuccessful)
+    if(temp == NULL){
+        lock_release(pidTable_lk);
+        //return ENOMEM;
+        return 0;
+    }
+    
+    pidTable[pid] = temp;
+    
+    lock_release(pidTable_lk);
+    
+    return pid;
+}
+
+
+/*
+ * Destroy a process table entry
+ */
+void pid_destroy(struct processID* pid){
+    
+    KASSERT(pid != NULL);
+
+    kfree(pid);
+}
+
+
+/*
+ * Find Empty entry in process table
+ */
+pid_t pid_find_entry(void){
+    
+    int pid;
+    for(pid = 1; pid < PID_MAX; pid++){
+        if(&pidTable[pid] == NULL){
+            return pid;
+        }
+    }
+    
+    return ENPROC;
 }

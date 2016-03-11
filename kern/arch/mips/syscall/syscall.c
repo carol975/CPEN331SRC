@@ -37,6 +37,7 @@
 #include <current.h>
 #include <copyinout.h>
 #include <syscall.h>
+#include <proc.h>
 
 
 /*
@@ -197,12 +198,14 @@ syscall(struct trapframe *tf)
 	    /* Even more system calls will go here */
         
         /* Process System Calls */
+        
+        
         case SYS_fork:
         err = sys_fork(
                 tf, 
                 &retval);
         break;
-        
+        /*
         case SYS_execv:
         err = sys_execv(
                     (const char*)tf->tf_a0,
@@ -218,16 +221,18 @@ syscall(struct trapframe *tf)
                     &retval);
         break;
         
+        */
         case SYS_getpid:
         err = sys_getpid(
                     &retval);
         break;
         
+        /*
         case SYS__exit:
         err = sys__exit(
                     tf->tf_a0);
         break;
-
+        */
         
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
@@ -273,7 +278,20 @@ syscall(struct trapframe *tf)
  * Thus, you can trash it and do things another way if you prefer.
  */
 void
-enter_forked_process(struct trapframe *tf)
+enter_forked_process(void * tf,unsigned long data2)
 {
-	(void)tf;
+	(void) data2;	
+	struct trapframe child_tf;
+	child_tf = *(struct trapframe*)tf;
+	
+	//modify parent trapframe to make child's fork looks success and return 0
+	child_tf.tf_v0 = 0; //child return 0 for fork
+	child_tf.tf_a3 = 0; //err = 0, so successful
+
+	//increment child epc by 4 so it does not execute the fork call
+	child_tf.tf_epc += 4;
+	
+	//enter user mode
+	mips_usermode(&child_tf);
+	
 }
