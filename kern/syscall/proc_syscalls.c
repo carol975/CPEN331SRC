@@ -24,8 +24,6 @@
 #include <mips/trapframe.h>
 
 /* copy the current process */
-
-
 pid_t 
 sys_fork(struct trapframe *parent_tf, int *retval){
 
@@ -63,16 +61,17 @@ sys_fork(struct trapframe *parent_tf, int *retval){
 
 
 /* execute a program */
-
 /*
 int 
 sys_execv(const char* program, char** args, int *retval){
+
+	 return 0;
+
 
 }
 */
 
 /* wait for a process to exit */
-
 /*
 pid_t 
 sys_waitpid(pid_t pid, int* status, int option, int *retval){
@@ -89,10 +88,76 @@ sys_getpid(int *retval){
 }
 
 /* terminate a process */
-
 /*
 void 
 sys__exit(int exitcode){
 
 }
 */
+
+int 
+sys_execv(const char* program, char** args, int *retval){
+	
+	struct addrspace *as;
+	struct vnode *v;
+	vaddr_t entrypoint, stackptr;
+	int err;
+	
+	/* open the executable, create a new address space and load the elf into it */
+	
+	/*Open the file */
+	err = vfs_open(program, O_RDONLY,0,&v);
+	if(err){
+		return err;
+	}
+	
+	/* since execv is called after fork, we should be in the new process */
+	// since file table for child is already copied over from the parent, no need to
+	// create a new file table
+	
+	// destroy the child_proc addrspace
+	if(curproc->p_addrspace != NULL){
+		as_destroy(curproc->p_addrspace);
+		curproc->p_addrspace = NULL;
+	}
+	
+	// create a new addrspace for the child proc
+	as = as_create();
+	if(as == NULL){
+		vfs_clos(v);
+		return ENOMEM;
+	}
+	
+	// Switch to the newly created addresspace, that is, to completely abandon the addrspce it inherited from its parent
+	
+	proc_setas(as);
+	as_activate();
+	
+	/* Load thee executable. */
+	err = load_elf(v, &entrypoint);
+	if(err){
+		/* p_addrspace will be destroyed when curproc is destroyed */
+		vfs_close(v);
+		return err; 
+	}
+	
+	/*Done with the file now. */
+	vfs_close(v);
+	
+	/* Define the user stack in the address space */
+	err = as_define_stack(as, &stackptr);
+	if(err){
+		return err;
+	}
+	
+	/* Go back to user mode */
+	/* Note: argc should be tf_a0, argv should be tf_a1l
+	*/
+	enter_new_process(0/*argc*/,NULL/*userspace addr of argv*/, NULL ./*userspace addr of environment */, stackptr, entrypoint);
+	
+	/*enter_new_process should not return */
+	panic("enter_new_process returned\n");
+	return EINVAL;
+	
+}
+

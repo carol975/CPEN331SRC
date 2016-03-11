@@ -203,11 +203,12 @@ syscall(struct trapframe *tf)
         case SYS_fork:
         err = sys_fork(
                 tf, 
-                &retval);
+                &retval); 
         break;
         /*
         case SYS_execv:
-        err = sys_execv(
+        err = sys_execv(\
+
                     (const char*)tf->tf_a0,
                     (char**) tf->tf_a1,
                     &retval);
@@ -220,12 +221,12 @@ syscall(struct trapframe *tf)
                     tf->tf_a2,
                     &retval);
         break;
-        
         */
         case SYS_getpid:
         err = sys_getpid(
                     &retval);
         break;
+
         
         /*
         case SYS__exit:
@@ -233,6 +234,7 @@ syscall(struct trapframe *tf)
                     tf->tf_a0);
         break;
         */
+
         
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
@@ -281,8 +283,7 @@ void
 enter_forked_process(void * tf,unsigned long data2)
 {
 	(void) data2;	
-	struct trapframe child_tf;
-	child_tf = *(struct trapframe*)tf;
+	struct trapframe child_tf = *(struct trapframe*)tf;
 	
 	//modify parent trapframe to make child's fork looks success and return 0
 	child_tf.tf_v0 = 0; //child return 0 for fork
@@ -293,5 +294,6 @@ enter_forked_process(void * tf,unsigned long data2)
 	
 	//enter user mode
 	mips_usermode(&child_tf);
-	
+
 }
+
