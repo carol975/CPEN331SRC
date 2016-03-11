@@ -82,7 +82,15 @@ int sys_execv(const char* program, char** args, int *retval){
 	
 	/* since execv is called after fork, we should be in the new process */
 	// since file table for child is already copied over from the parent, no need to
-	// create a new 
+	// create a new file table
+	
+	// destroy the child_proc addrspace
+	if(curproc->p_addrspace != NULL){
+		as_destroy(curproc->p_addrspace);
+		curproc->p_addrspace = NULL;
+	}
+	
+	// create a new addrspace for the child proc
 	as = as_create();
 	if(as == NULL){
 		vfs_clos(v);
@@ -102,7 +110,18 @@ int sys_execv(const char* program, char** args, int *retval){
 		return err; 
 	}
 	
+	/*Done with the file now. */
+	vfs_close(v);
+	
+	/* Define the user stack in the address space */
+	err = as_define_stack(as, &stackptr);
+	if(err){
+		return err;
+	}
+	
 	/* Go back to user mode */
+	/* Note: argc should be tf_a0, argv should be tf_a1l
+	*/
 	enter_new_process(0/*argc*/,NULL/*userspace addr of argv*/, NULL ./*userspace addr of environment */, stackptr, entrypoint);
 	
 	/*enter_new_process should not return */
