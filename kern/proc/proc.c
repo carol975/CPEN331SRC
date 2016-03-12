@@ -57,7 +57,6 @@
  */
 struct proc *kproc;
 
-struct processID *pidTable[PID_MAX];  //global process table
 bool init = 0;     //detemine if this is the first time initializing table
 struct lock *pidTable_lk;
 /*
@@ -90,16 +89,25 @@ proc_create(const char *name)
 	proc->p_filetable = NULL;
 	
 	//if pid table is not initialized yet, initialize it
-	/*
 	if(init == 0){
 	    pid_init();
+	    kprintf("init");
 	    init = 1;
 	}
-	*/
-	//pid_t id = pid_alloc();
-	
-	
     
+    pid_t count = 2;
+    while(pidTable[count] != NULL){
+        if(count > PID_MAX){
+            //return EMPROC;
+            return 0;
+        }
+        count++;
+    }
+    
+    //kprintf("set\n");
+    //kprintf("%d\n", count);
+    
+    proc->pid = count;
 	return proc;
 }
 
@@ -427,7 +435,9 @@ pid_init(){
     * No process can use pid = 0, so we initialize pid = 1 with
     * pid = 1, ppid = 0
     */
-   pidTable[1] = pid_set(1, 0);
+    
+   struct processID *temp = NULL;
+   pidTable[1] = pid_set(1, 0, temp);
    
 
 }
@@ -436,8 +446,8 @@ pid_init(){
  * Set an entry in the pidTable
  */
 struct processID *
-pid_set(pid_t pid, pid_t ppid){
-    struct processID *temp;
+pid_set(pid_t pid, pid_t ppid, struct processID *temp){
+    
     
     KASSERT(pid != 0);
     
@@ -458,35 +468,23 @@ pid_set(pid_t pid, pid_t ppid){
 pid_t
 pid_alloc(void) {
 
-    lock_acquire(pidTable_lk);
+    //lock_acquire(pidTable_lk);
     
     //TODO: check if # of process is maxed out?
     
-    int pid = 1;
+    pid_t pid = 1;
     while(pidTable[pid] != NULL) {
     
         //no more space for new process
         if(pid > PID_MAX){
-            lock_release(pidTable_lk);
+            //lock_release(pidTable_lk);
             //return ENPROC;
             return 0;
         }
         pid++;
     }
     
-    struct processID *temp;
-    temp = pid_set(pid, curproc->pid);
-    
-    //not enough memory to set up entry (kmalloc unsuccessful)
-    if(temp == NULL){
-        lock_release(pidTable_lk);
-        //return ENOMEM;
-        return 0;
-    }
-    
-    pidTable[pid] = temp;
-    
-    lock_release(pidTable_lk);
+    //lock_release(pidTable_lk);
     
     return pid;
 }

@@ -80,6 +80,8 @@ struct processID {
 /* This is the process structure for the kernel and for kernel-only threads. */
 extern struct proc *kproc;
 
+struct processID *pidTable[PID_MAX];  //global process table
+
 /* Call once during system startup to allocate data structures. */
 void proc_bootstrap(void);
 
@@ -110,7 +112,7 @@ void pid_init(void);
 /*
  * Set an entry in the pidTable
  */
-struct processID * pid_set(pid_t pid, pid_t ppid);
+struct processID * pid_set(pid_t pid, pid_t ppid, struct processID *temp);
 
 pid_t pid_alloc(void);
 
