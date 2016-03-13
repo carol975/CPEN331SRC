@@ -73,7 +73,8 @@ struct processID {
    bool exited;        //determine if process exited or not
    int exitCode;       //exit code of process
    //struct thread *p_thread;  //thread of current process
-   //struct cv *p_cv;    //lock for current process 
+   struct cv *p_cv;    //cv for current process 
+   struct lock *p_lk;  //lock for current process
 };
 
 

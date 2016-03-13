@@ -22,6 +22,7 @@
 #include <thread.h>
 #include <addrspace.h>
 #include <mips/trapframe.h>
+#include <kern/wait.h>
 
 /* copy the current process */
 pid_t 
@@ -57,12 +58,19 @@ sys_fork(struct trapframe *parent_tf, int *retval){
 	
 	child_info->pid = child_proc->pid;
 	child_info->ppid = curproc->pid;
-	child_info->exited = 0;
+	child_info->exited = false;
 	child_info->exitCode = 0;
+	child_info->p_lk = lock_create("pid_lock");
+	if(child_info->p_lk == NULL){
+	    return 0;
+	}
+	child_info->p_cv = cv_create("pid_cv");
+	if(child_info->p_cv == NULL){
+	    return 0;
+	}
+	
 	
 	pidTable[child_proc->pid] = child_info;
-	//99999 is a dummy value for child pid
-	//for parent fork() returns the dummy child pid
 	*retval = child_proc->pid;
 	return 0;
 }
@@ -80,12 +88,61 @@ sys_execv(const char* program, char** args, int *retval){
 */
 
 /* wait for a process to exit */
-/*
 pid_t 
 sys_waitpid(pid_t pid, int* status, int option, int *retval){
-
+    
+    
+    //out of the bounds of valid pid
+    if(pid > PID_MAX || pid < PID_MIN){
+        return ESRCH;
+    }
+    
+    //have same pid as current process
+    if(pid == curproc->pid){
+        return ECHILD;
+    }
+    
+    //invalide status pointer
+    if(status == NULL){
+        return EFAULT;
+    }
+    
+    //option should be 0
+    if(option != 0){
+        return EINVAL;
+    }
+    
+    //check if pid matches and entry in the process table
+    pid_t id;
+    for(id = PID_MIN; id < PID_MAX; id++){
+        if(pidTable[id]->pid == pid){
+            break;
+        }
+    }
+    
+    //if no entry was found with the index
+    if(pid == PID_MAX){
+        return ESRCH;
+    }
+    
+    
+    //wait for the process to exit
+    lock_acquire(pidTable[id]->p_lk);
+    
+    while(pidTable[id]->exited != true){
+        cv_wait(pidTable[id]->p_cv, pidTable[id]->p_lk);
+    }
+    lock_release(pidTable[id]->p_lk);
+    
+    int result = copyout((void *) &(pidTable[id]->exitCode), (userptr_t)status, sizeof(int));
+    if(result){
+        return result;
+    }
+    
+    *retval = pid;
+    return 0;
 }
-*/
+
 
 /* get process id */
 pid_t 
@@ -96,12 +153,26 @@ sys_getpid(int *retval){
 }
 
 /* terminate a process */
-/*
 void 
 sys__exit(int exitcode){
 
+    //struct proc *current_proc = curproc;
+    pid_t pid = curproc->pid;
+    struct proc *current = curproc;
+    
+    pidTable[pid]->exited = true;
+    pidTable[pid]->exitCode = _MKWAIT_EXIT(exitcode);
+    
+    proc_remthread(curthread);
+    
+    proc_destroy(current);
+    
+    kfree(pidTable[pid]);
+    pidTable[pid] = NULL;
+    
+    thread_exit();
 }
-*/
+
 
 
 

@@ -95,7 +95,7 @@ proc_create(const char *name)
 	    init = 1;
 	}
     
-    pid_t count = 2;
+    pid_t count = PID_MIN;
     while(pidTable[count] != NULL){
         if(count > PID_MAX){
             //return EMPROC;

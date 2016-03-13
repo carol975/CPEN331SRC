@@ -213,7 +213,7 @@ syscall(struct trapframe *tf)
                     (char**) tf->tf_a1,
                     &retval);
         break;
-        
+        */
         case SYS_waitpid:
         err = sys_waitpid(
                     (pid_t)tf->tf_a0,
@@ -221,19 +221,18 @@ syscall(struct trapframe *tf)
                     tf->tf_a2,
                     &retval);
         break;
-        */
+        
         case SYS_getpid:
         err = sys_getpid(
                     &retval);
         break;
 
-        
-        /*
         case SYS__exit:
-        err = sys__exit(
-                    tf->tf_a0);
+        sys__exit(
+                tf->tf_a0);
+                
         break;
-        */
+        
 
         
 	    default:
