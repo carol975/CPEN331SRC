@@ -282,7 +282,7 @@ enter_forked_process(void * tf,unsigned long data2)
 {
 	(void) data2;	
 	struct trapframe child_tf = *(struct trapframe*)tf;
-	
+
 	//modify parent trapframe to make child's fork looks success and return 0
 	child_tf.tf_v0 = 0; //child return 0 for fork
 	child_tf.tf_a3 = 0; //err = 0, so successful
@@ -290,6 +290,7 @@ enter_forked_process(void * tf,unsigned long data2)
 	//increment child epc by 4 so it does not execute the fork call
 	child_tf.tf_epc += 4;
 	
+
 	//enter user mode
 	mips_usermode(&child_tf);
 

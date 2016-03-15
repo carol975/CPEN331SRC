@@ -63,24 +63,8 @@ sys_fork(struct trapframe *parent_tf, int *retval){
 		proc_destroy(child_proc);
 		return err;
 	}
-	
-	struct processID *child_info = (struct processID *)kmalloc(sizeof(struct processID));
-	
-	child_info->pid = child_proc->pid;
-	child_info->ppid = curproc->pid;
-	child_info->exited = false;
-	child_info->exitCode = 0;
-	child_info->p_lk = lock_create("pid_lock");
-	if(child_info->p_lk == NULL){
-	    return 0;
-	}
-	child_info->p_cv = cv_create("pid_cv");
-	if(child_info->p_cv == NULL){
-	    return 0;
-	}
-	
-	
-	pidTable[child_proc->pid] = child_info;
+
+	pidTable[child_proc->pid]->ppid = curproc->pid;
 	*retval = child_proc->pid;
 	return 0;
 }
@@ -281,7 +265,7 @@ sys_waitpid(pid_t pid, int* status, int option, int *retval){
         return ECHILD;
     }
     
-    //invalide status pointer
+    //invalid status pointer
     if(status == NULL){
         return EFAULT;
     }
@@ -304,25 +288,19 @@ sys_waitpid(pid_t pid, int* status, int option, int *retval){
         return ESRCH;
     }
     
-    
-    //wait for the process to exit
-    lock_acquire(pidTable[pid]->p_lk);
-    
-    while(pidTable[pid]->exited != true){
-        cv_wait(pidTable[pid]->p_cv, pidTable[pid]->p_lk);
+    //wait on exit if child not exited yet
+    if(pidTable[pid]->exited == false){
+        P(pidTable[pid]->sem_wait);
     }
-    lock_release(pidTable[pid]->p_lk);
     
+    //copy exit status of chile to parent
     int result = copyout((void *) &(pidTable[pid]->exitCode), (userptr_t)status, sizeof(int));
     if(result){
-        return result;
+        return EFAULT;
     }
     
-    //proc_destroy(pidTable[pid]);
-    
-    kfree(pidTable[pid]);
-    pidTable[pid] = NULL;
-    
+    //lock the process to wait for exit
+    V(pidTable[pid]->sem_exit);
     *retval = pid;
     return 0;
 }
@@ -340,20 +318,26 @@ sys_getpid(int *retval){
 void 
 sys__exit(int exitcode){
 
-    //struct proc *current_proc = curproc;
-    pid_t pid = curproc->pid;
-    struct proc *current = curproc;
     
+    struct proc *current_proc = curproc;  //save the current proc for later use
+    pid_t pid = curproc->pid;
+    
+    //set the child exit status and flag
     pidTable[pid]->exited = true;
     pidTable[pid]->exitCode = _MKWAIT_EXIT(exitcode);
     
-    //proc_remthread(curthread);
+    //signal parent to release sem
+    V(pidTable[pid]->sem_wait);     
+      
+    //wait on the parent to signal it's time to exit
+    P(pidTable[pid]->sem_exit);
     
-    proc_destroy(current);
-    
+    //clean up the child
+    proc_remthread(curthread);
     kfree(pidTable[pid]);
     pidTable[pid] = NULL;
-    
+    proc_destroy(current_proc);
+    proc_addthread(kproc, curthread);
     thread_exit();
 }
 

@@ -91,23 +91,40 @@ proc_create(const char *name)
 	//if pid table is not initialized yet, initialize it
 	if(init == 0){
 	    pid_init();
-	    kprintf("init");
-	    init = 1;
+	    //add entry of the first process
+	    struct processID *info = (struct processID *)kmalloc(sizeof(struct processID));
+	    info->pid = PID_MIN - 1;
+	    info->ppid = 0;
+	    info->exited = false;
+	    info->exitCode = 0;
+	    info->sem_wait = sem_create("wait", 1);
+	    info->sem_exit = sem_create("exit", 1);
+	    pidTable[PID_MIN - 1] = info;
+	    proc->pid = PID_MIN - 1;
 	}
     
-    pid_t count = PID_MIN;
-    while(pidTable[count] != NULL){
-        if(count > PID_MAX){
-            //return EMPROC;
-            return 0;
+    // if not first time executing, create new entry for process table
+    if(init == 1){
+        pid_t count;;
+        for(count = PID_MIN; count < PID_MAX; count++){
+            if(pidTable[count] == NULL){
+                break;
+            }
         }
-        count++;
+       
+        //put entry in table
+        struct processID *info = (struct processID *)kmalloc(sizeof(struct processID));
+	    info->pid = count;
+	    info->ppid = 0;
+	    info->exited = false;
+	    info->exitCode = 0;
+	    info->sem_wait = sem_create("wait", 1);
+	    info->sem_exit = sem_create("exit", 1);
+	    pidTable[count] = info;
+        proc->pid = count;
     }
     
-    //kprintf("set\n");
-    //kprintf("%d\n", count);
-    
-    proc->pid = count;
+    init = 1;
 	return proc;
 }
 
@@ -427,9 +444,6 @@ pid_init(){
    }
    
    pidTable_lk = lock_create("pidTable_lk");
-   if(pidTable_lk == NULL){
-        //TODO: Unsuccessful creation of lock
-   }
    
    /*
     * No process can use pid = 0, so we initialize pid = 1 with
@@ -465,53 +479,5 @@ pid_set(pid_t pid, pid_t ppid, struct processID *temp){
     
 }
 
-pid_t
-pid_alloc(void) {
-
-    //lock_acquire(pidTable_lk);
-    
-    //TODO: check if # of process is maxed out?
-    
-    pid_t pid = 1;
-    while(pidTable[pid] != NULL) {
-    
-        //no more space for new process
-        if(pid > PID_MAX){
-            //lock_release(pidTable_lk);
-            //return ENPROC;
-            return 0;
-        }
-        pid++;
-    }
-    
-    //lock_release(pidTable_lk);
-    
-    return pid;
-}
 
 
-/*
- * Destroy a process table entry
- */
-void pid_destroy(struct processID* pid){
-    
-    KASSERT(pid != NULL);
-
-    kfree(pid);
-}
-
-
-/*
- * Find Empty entry in process table
- */
-pid_t pid_find_entry(void){
-    
-    int pid;
-    for(pid = 1; pid < PID_MAX; pid++){
-        if(&pidTable[pid] == NULL){
-            return pid;
-        }
-    }
-    
-    return ENPROC;
-}
