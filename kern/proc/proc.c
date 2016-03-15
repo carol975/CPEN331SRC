@@ -93,20 +93,20 @@ proc_create(const char *name)
 	    pid_init();
 	    //add entry of the first process
 	    struct processID *info = (struct processID *)kmalloc(sizeof(struct processID));
-	    info->pid = PID_MIN;
+	    info->pid = PID_MIN - 1;
 	    info->ppid = 0;
 	    info->exited = false;
 	    info->exitCode = 0;
 	    info->sem_wait = sem_create("wait", 1);
 	    info->sem_exit = sem_create("exit", 1);
-	    pidTable[PID_MIN] = info;
-	    proc->pid = PID_MIN;
-	    //kprintf("first pid: %d\n", PID_MIN);
+	    pidTable[PID_MIN - 1] = info;
+	    proc->pid = PID_MIN - 1;
 	}
     
+    // if not first time executing, create new entry for process table
     if(init == 1){
-        pid_t count = PID_MIN + 1;
-        for(count = PID_MIN+1; count < PID_MAX; count++){
+        pid_t count;;
+        for(count = PID_MIN; count < PID_MAX; count++){
             if(pidTable[count] == NULL){
                 break;
             }
@@ -122,9 +122,6 @@ proc_create(const char *name)
 	    info->sem_exit = sem_create("exit", 1);
 	    pidTable[count] = info;
         proc->pid = count;
-        
-        //kprintf("set\n");
-        //kprintf("%d\n", count);
     }
     
     init = 1;
@@ -447,9 +444,6 @@ pid_init(){
    }
    
    pidTable_lk = lock_create("pidTable_lk");
-   if(pidTable_lk == NULL){
-        //TODO: Unsuccessful creation of lock
-   }
    
    /*
     * No process can use pid = 0, so we initialize pid = 1 with
