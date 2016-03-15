@@ -119,7 +119,7 @@ sys_execv(const char* program, char** uargs){
 
 	int i;
 	
-	for(i = 0; i < nargs, ++i){
+	for(i = 0; i < nargs; ++i){
 		err = copyinstr((const_userptr_t)uargs[i], k_args[i],PATH_MAX,&actual);
 		if(err){
 			kfree(k_program);
@@ -129,7 +129,7 @@ sys_execv(const char* program, char** uargs){
 	}
 	
 	++i;
-	args[i] = NULL;
+	uargs[i] = NULL;
 	
 	
 	
