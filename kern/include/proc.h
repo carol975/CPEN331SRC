@@ -73,8 +73,10 @@ struct processID {
    bool exited;        //determine if process exited or not
    int exitCode;       //exit code of process
    //struct thread *p_thread;  //thread of current process
-   struct cv *p_cv;    //cv for current process 
-   struct lock *p_lk;  //lock for current process
+   //struct cv *p_cv;    //cv for current process 
+   //struct lock *p_lk;  //lock for current process
+   struct semaphore *sem_wait;
+   struct semaphore *sem_exit;
 };
 
 
@@ -115,13 +117,6 @@ void pid_init(void);
  */
 struct processID * pid_set(pid_t pid, pid_t ppid, struct processID *temp);
 
-pid_t pid_alloc(void);
-
-/* Destroys a process ID entry  */
-void pid_destroy(struct processID* pid);
-
-/* Find empty entry in process table */
-pid_t pid_find_entry(void);
 
 
 #endif /* _PROC_H_ */

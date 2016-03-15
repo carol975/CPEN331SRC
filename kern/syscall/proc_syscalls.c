@@ -53,24 +53,8 @@ sys_fork(struct trapframe *parent_tf, int *retval){
 		proc_destroy(child_proc);
 		return err;
 	}
-	
-	struct processID *child_info = (struct processID *)kmalloc(sizeof(struct processID));
-	
-	child_info->pid = child_proc->pid;
-	child_info->ppid = curproc->pid;
-	child_info->exited = false;
-	child_info->exitCode = 0;
-	child_info->p_lk = lock_create("pid_lock");
-	if(child_info->p_lk == NULL){
-	    return 0;
-	}
-	child_info->p_cv = cv_create("pid_cv");
-	if(child_info->p_cv == NULL){
-	    return 0;
-	}
-	
-	
-	pidTable[child_proc->pid] = child_info;
+
+	pidTable[child_proc->pid]->ppid = curproc->pid;
 	*retval = child_proc->pid;
 	return 0;
 }
@@ -187,20 +171,23 @@ sys_waitpid(pid_t pid, int* status, int option, int *retval){
         return ESRCH;
     }
     
-    
+    //pid_t parent_pid = pidTable[pid]->ppid;
+    /*
     //wait for the process to exit
     lock_acquire(pidTable[pid]->p_lk);
     
+    // || pidTable[parent_pid]->exited != true
     while(pidTable[pid]->exited != true){
         cv_wait(pidTable[pid]->p_cv, pidTable[pid]->p_lk);
     }
     lock_release(pidTable[pid]->p_lk);
-    
+    */
+    P(pidTable[pid]->sem_wait);
     int result = copyout((void *) &(pidTable[pid]->exitCode), (userptr_t)status, sizeof(int));
     if(result){
         return result;
     }
-    
+    V(pidTable[pid]->sem_exit);
     //proc_destroy(pidTable[pid]);
     
     kfree(pidTable[pid]);
@@ -223,21 +210,26 @@ sys_getpid(int *retval){
 void 
 sys__exit(int exitcode){
 
-    //struct proc *current_proc = curproc;
+    
+    struct proc *current_proc = curproc;
     pid_t pid = curproc->pid;
-    struct proc *current = curproc;
     
-    pidTable[pid]->exited = true;
-    pidTable[pid]->exitCode = _MKWAIT_EXIT(exitcode);
-    
-    //proc_remthread(curthread);
-    
-    proc_destroy(current);
-    
-    kfree(pidTable[pid]);
-    pidTable[pid] = NULL;
-    
+    if(pidTable[pid]->exited == false){
+        pidTable[pid]->exited = true;
+        pidTable[pid]->exitCode = _MKWAIT_EXIT(exitcode);
+        V(pidTable[pid]->sem_wait);
+        
+        P(pidTable[pid]->sem_exit);
+        proc_remthread(curthread);
+        kfree(pidTable[pid]);
+        pidTable[pid] = NULL;
+        
+        
+        proc_destroy(current_proc);
+    }
+    proc_addthread(kproc, curthread);
     thread_exit();
+    
 }
 
 
