@@ -231,10 +231,15 @@ sys_execv(const char* program, char** uargs){
 		
 		k_args[j] = (char *)stackptr;
 		
-		for(in)
+		++j;
+		
 	}
 	
+	stackptr -= 4 * sizeof(char);
+
 	
+	kfree(k_program);
+	kfree(k_args);
 	
 	
 	/* Go back to user mode */
