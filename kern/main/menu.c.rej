@@ -1,0 +1,15 @@
+--- kern/main/menu.c	Wed Aug 05 15:58:15 2015 -0400
++++ kern/main/menu.c	Wed Aug 05 16:01:42 2015 -0400
+@@ -473,9 +473,9 @@
+ 	"[net] Network test                  ",
+ #endif
+ 	"[sy1] Semaphore test                ",
+-	"[sy2] Lock test             (1)     ",
+-	"[sy3] CV test               (1)     ",
+-	"[sy4] CV test #2            (1)     ",
++	"[sy2] Lock test                     ",
++	"[sy3] CV test                       ",
++	"[sy4] CV test #2                    ",
+ 	"[semu1-22] Semaphore unit tests     ",
+ 	"[fs1] Filesystem test               ",
+ 	"[fs2] FS read stress                ",
